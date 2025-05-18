@@ -1,13 +1,15 @@
+// *************** IMPORT LIBRARIES ***************
 import cookieParser from 'cookie-parser';
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
-
 import { createServer } from 'http';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 
+// *************** IMPORT MODULES ***************
+import { ConnectToDatabase } from '../database/mongoose.js';
 import { resolvers, typeDefs } from './graphql/index.js';
 
 dotenv.config();
@@ -20,6 +22,8 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 const startServer = async () => {
+  ConnectToDatabase();
+
   const httpServer = createServer(app);
 
   const server = new ApolloServer({
@@ -43,9 +47,9 @@ const startServer = async () => {
   app.use(
     '/graphql',
     expressMiddleware(server, {
-      context: async ({ request, response }) => ({
-        request: request,
-        response: response,
+      context: async ({ req, res }) => ({
+        req: req,
+        res: res,
       }),
     })
   );

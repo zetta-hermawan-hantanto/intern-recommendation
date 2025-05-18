@@ -1,4 +1,5 @@
 // *************** IMPORT LIBRARIES ***************
+import { isValidObjectId } from 'mongoose';
 import { GraphQLError } from 'graphql';
 
 // *************** IMPORT MODULES ***************
@@ -9,7 +10,6 @@ import { ComparePassword, GenerateToken, HashPassword } from './user.helper.js';
 
 // *************** IMPORT VALIDATORS ***************
 import { ValidateLoginInput, ValidateRegisterUser } from './user.validator.js';
-import { isValidObjectId } from 'mongoose';
 
 /**
  * The function `GetUserById` fetches a user by their ID asynchronously, handling errors and returning
@@ -50,7 +50,7 @@ async function GetUserById(parent, { userId }) {
  * @returns The function `LoginUser` returns an object containing the `user` data if the login process
  * is successful.
  */
-async function LoginUser(parent, { email, password }, { response }) {
+async function LoginUser(parent, { email, password }, { res }) {
   try {
     ValidateLoginInput({ email, password });
 
@@ -64,19 +64,19 @@ async function LoginUser(parent, { email, password }, { response }) {
       throw new GraphQLError('Email or password is incorrect');
     }
 
-    const token = GenerateToken({ userId: user._id });
+    const token = await GenerateToken({ userId: user._id });
     if (!token) {
       throw new GraphQLError('Failed to generate token');
     }
 
-    response.cookie('token', token, {
+    res.cookie('token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'None',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    return { user };
+    return user;
   } catch (error) {
     console.error('Error logging in user:', error);
     throw new GraphQLError(error.message);
@@ -135,9 +135,9 @@ async function RegisterUser(parent, { name, email, password }) {
  * @returns The function `LogoutUser` is returning an object with a `message` property set to 'Logged
  * out successfully'.
  */
-async function LogoutUser(parent, args, { response }) {
+async function LogoutUser(parent, args, { res }) {
   try {
-    response.clearCookie('token', {
+    res.clearCookie('token', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'None',
@@ -150,6 +150,7 @@ async function LogoutUser(parent, args, { response }) {
   }
 }
 
+// *************** EXPORT MODULES ***************
 export default {
   Query: {
     GetUserById,

@@ -1,7 +1,11 @@
-import { compare, genSalt } from 'bcrypt';
-import { ValidateComparePassword } from './user.validator.js';
-
+// *************** IMPORT LIBRARIES ***************
+import jwt from 'jsonwebtoken';
+import { compare, genSalt, hash } from 'bcrypt';
+import { GraphQLError } from 'graphql';
 import { isValidObjectId } from 'mongoose';
+
+// *************** IMPORT VALIDATORS ***************
+import { ValidateComparePassword } from './user.validator.js';
 
 /**
  * The function `ComparePassword` compares a plain text password with a hashed password asynchronously.
@@ -28,7 +32,7 @@ export const ComparePassword = async ({ password, hashedPassword }) => {
  * userId provided as the payload, the JWT_SECRET stored in the environment variables, and with an
  * expiration time of 1 hour.
  */
-export const GenerateToken = ({ userId }) => {
+export const GenerateToken = async ({ userId }) => {
   try {
     if (!userId || !isValidObjectId(userId)) {
       throw new GraphQLError('User ID is required to generate a token and must be a valid ObjectId');
@@ -54,12 +58,12 @@ export const HashPassword = async ({ password }) => {
       throw new GraphQLError('Password is required and must be a string');
     }
 
-    const genSalt = await genSalt(10);
-    if (!genSalt) {
+    const salt = await genSalt(10);
+    if (!salt) {
       throw new GraphQLError('Failed to generate salt for password hashing');
     }
 
-    const hashedPassword = await hash(password, genSalt);
+    const hashedPassword = hash(password, salt);
     if (!hashedPassword) {
       throw new GraphQLError('Failed to hash password');
     }

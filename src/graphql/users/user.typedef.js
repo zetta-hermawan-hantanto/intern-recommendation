@@ -1,3 +1,4 @@
+// *************** IMPORT LIBRARIES ***************
 import gql from 'graphql-tag';
 
 const userTypedef = gql`
@@ -19,4 +20,5 @@ const userTypedef = gql`
   }
 `;
 
+// *************** EXPORT MODULES ***************
 export default userTypedef;

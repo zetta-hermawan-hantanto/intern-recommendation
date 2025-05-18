@@ -1,9 +1,10 @@
-import { GraphQLError } from 'graphql';
+// *************** IMPORT LIBRARIES ***************
 import Joi from 'joi';
+import { GraphQLError } from 'graphql';
 
 const passwordRegex = new RegExp('^[a-zA-Z0-9]{3,30}$');
 
-export function ValidateLoginInput(parent, { email, password }, context) {
+export function ValidateLoginInput({ email, password }) {
   const schema = Joi.object({
     email: Joi.string().email().required().error(new GraphQLError('Invalid email format')),
     password: Joi.string()
