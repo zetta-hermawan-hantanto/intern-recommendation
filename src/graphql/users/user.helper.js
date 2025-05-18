@@ -1,5 +1,5 @@
-import { compare } from 'bcrypt';
-import { ValidateComparePassword } from './user.validator';
+import { compare, genSalt } from 'bcrypt';
+import { ValidateComparePassword } from './user.validator.js';
 
 import { isValidObjectId } from 'mongoose';
 
@@ -39,6 +39,34 @@ export const GenerateToken = ({ userId }) => {
     return token;
   } catch (error) {
     console.error('Error generating token:', error);
+    throw new GraphQLError(error.message);
+  }
+};
+
+/**
+ * The function `HashPassword` hashes a given password using bcrypt with error handling.
+ * @returns The function `HashPassword` is returning the hashed password after generating a salt and
+ * hashing the input password.
+ */
+export const HashPassword = async ({ password }) => {
+  try {
+    if (!password || typeof password !== 'string') {
+      throw new GraphQLError('Password is required and must be a string');
+    }
+
+    const genSalt = await genSalt(10);
+    if (!genSalt) {
+      throw new GraphQLError('Failed to generate salt for password hashing');
+    }
+
+    const hashedPassword = await hash(password, genSalt);
+    if (!hashedPassword) {
+      throw new GraphQLError('Failed to hash password');
+    }
+
+    return hashedPassword;
+  } catch (error) {
+    console.error('Error hashing password:', error);
     throw new GraphQLError(error.message);
   }
 };

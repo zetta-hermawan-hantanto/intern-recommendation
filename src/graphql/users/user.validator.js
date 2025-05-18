@@ -32,3 +32,19 @@ export function ValidateComparePassword({ password, hashedPassword }) {
 
   if (error && error.message) throw new GraphQLError(error.message);
 }
+
+export function ValidateRegisterUser({ name, email, password }) {
+  const schema = Joi.object({
+    name: Joi.string().min(3).max(30).required().error(new GraphQLError('Name must be between 3 and 30 characters')),
+    email: Joi.string().email().required().error(new GraphQLError('Invalid email format')),
+    password: Joi.string()
+      .min(8)
+      .pattern(passwordRegex)
+      .required()
+      .error(new GraphQLError('Password must be at least 8 characters long and contain only alphanumeric characters')),
+  });
+
+  const { error } = schema.validate({ name, email, password });
+
+  if (error && error.message) throw new GraphQLError(error.message);
+}

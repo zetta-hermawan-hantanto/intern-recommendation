@@ -13,7 +13,9 @@ const userTypedef = gql`
   }
 
   type Mutation {
+    RegisterUser(name: String!, email: String!, password: String!): User!
     LoginUser(email: String!, password: String!): User!
+    LogoutUser: String!
   }
 `;
 

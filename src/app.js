@@ -3,11 +3,12 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 
-
 import { createServer } from 'http';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+
+import { resolvers, typeDefs } from './graphql/index.js';
 
 dotenv.config();
 const app = express();
@@ -18,10 +19,6 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
-
 const startServer = async () => {
   const httpServer = createServer(app);
 
@@ -30,6 +27,17 @@ const startServer = async () => {
     resolvers,
     introspection: process.env.NODE_ENV !== 'production',
     plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+  });
+
+  await server.start();
+
+  app.use('/graphql', (req, res, next) => {
+    if (req.body === undefined) {
+      req.body = {};
+    }
+
+    req.headers['content-type'] = 'application/json';
+    next();
   });
 
   app.use(
@@ -42,7 +50,9 @@ const startServer = async () => {
     })
   );
 
-  await server.start();
+  httpServer.listen(PORT, () => {
+    console.log(`Apollo Server on http://localhost:${PORT}/graphql`);
+  });
 };
 
 startServer();
