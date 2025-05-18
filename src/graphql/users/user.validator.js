@@ -1,0 +1,34 @@
+import { GraphQLError } from 'graphql';
+import Joi from 'joi';
+
+const passwordRegex = new RegExp('^[a-zA-Z0-9]{3,30}$');
+
+export function ValidateLoginInput(parent, { email, password }, context) {
+  const schema = Joi.object({
+    email: Joi.string().email().required().error(new GraphQLError('Invalid email format')),
+    password: Joi.string()
+      .min(8)
+      .pattern(passwordRegex)
+      .required()
+      .error(new GraphQLError('Password must be at least 8 characters long and contain only alphanumeric characters')),
+  });
+
+  const { error } = schema.validate({ email, password });
+
+  if (error && error.message) throw new GraphQLError(error.message);
+}
+
+export function ValidateComparePassword({ password, hashedPassword }) {
+  const schema = Joi.object({
+    password: Joi.string()
+      .min(8)
+      .pattern(passwordRegex)
+      .required()
+      .error(new GraphQLError('Password must be at least 8 characters long and contain only alphanumeric characters')),
+    hashedPassword: Joi.string().required().error(new GraphQLError('Hashed password is required')),
+  });
+
+  const { error } = schema.validate({ password, hashedPassword });
+
+  if (error && error.message) throw new GraphQLError(error.message);
+}
